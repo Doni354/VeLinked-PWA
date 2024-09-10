@@ -1,26 +1,69 @@
+let mode = 'desktop'; // Default mode
+let useCurrentUrl = false; // Default to using input URL
+
+// Fungsi untuk mengganti mode (desktop/mobile)
+function toggleMode() {
+    mode = mode === 'desktop' ? 'mobile' : 'desktop';
+    document.getElementById('modeBtn').innerText = mode === 'desktop' ? 'Switch to Mobile' : 'Switch to Desktop';
+}
+
+// Fungsi untuk mengganti sumber URL (Input URL atau Current URL)
+function toggleUrlSource() {
+    useCurrentUrl = !useCurrentUrl;
+    document.getElementById('urlSourceBtn').innerText = useCurrentUrl ? 'Use Input URL' : 'Use Current URL';
+}
+
+// Fungsi untuk mengambil domain utama dari URL
+function getMainDomain(url) {
+    let urlObject = new URL(url);
+    return urlObject.origin; // Mengembalikan hanya domain utama, misal: https://www.youtube.com/
+}
+
+// Fungsi untuk mendapatkan data PageSpeed
 function getPageSpeedData() {
-    const url = document.getElementById('urlInput').value;
+    const inputUrl = document.getElementById('urlInput').value;
+    const url = useCurrentUrl ? getMainDomain(window.location.href) : inputUrl;
+    const strategy = mode; // 'desktop' atau 'mobile'
     const resultsDiv = document.getElementById('results');
+
+    if (!url) {
+        alert("Please enter a valid URL.");
+        return;
+    }
 
     // Tampilkan pesan "sedang memproses"
     resultsDiv.innerHTML = '<p class="loading">Sedang memproses... Mohon tunggu...</p>';
 
-    // Endpoint tanpa API key
-    const apiUrl = `https://www.googleapis.com/pagespeedonline/v5/runPagespeed?url=${encodeURIComponent(url)}`;
+    // Endpoint API tanpa API key dengan strategi mode (desktop/mobile)
+    const apiUrl = `https://www.googleapis.com/pagespeedonline/v5/runPagespeed?url=${encodeURIComponent(url)}&strategy=${strategy}`;
+
+    console.log(`Requesting URL: ${apiUrl}`); // Tambahkan log untuk debug
 
     // Ambil data dari PageSpeed Insights API
     fetch(apiUrl)
-        .then(response => response.json())
-        .then(data => displayResults(data))
+        .then(response => {
+            console.log('API Response Status:', response.status); // Tambahkan log untuk debug
+            return response.json();
+        })
+        .then(data => {
+            console.log('API Data:', data); // Tambahkan log untuk debug
+            displayResults(data, url);
+        })
         .catch(error => {
             resultsDiv.innerHTML = `<p>Error: ${error.message}</p>`;
             console.error('Error fetching PageSpeed data:', error);
         });
 }
 
-function displayResults(data) {
+// Fungsi untuk menampilkan hasil PageSpeed
+function displayResults(data, url) {
     const resultsDiv = document.getElementById('results');
     resultsDiv.innerHTML = ''; // Kosongkan hasil sebelumnya
+
+    // Tampilkan URL yang dicek
+    resultsDiv.innerHTML += `<div class="result-item">
+        <strong>URL:</strong> ${url} (Mode: ${mode})
+    </div>`;
 
     if (data.lighthouseResult) {
         const metrics = data.lighthouseResult.audits;
@@ -59,24 +102,6 @@ function displayResults(data) {
         const performanceScore = data.lighthouseResult.categories.performance?.score * 100 || 'N/A';
         resultsDiv.innerHTML += `<div class="result-item">
             <strong>Performance Score:</strong> ${performanceScore}/100 (Skor keseluruhan performa halaman)
-        </div>`;
-
-        // Tampilkan SEO score jika tersedia
-        const seoScore = data.lighthouseResult.categories.seo?.score * 100 || 'N/A';
-        resultsDiv.innerHTML += `<div class="result-item">
-            <strong>SEO Score:</strong> ${seoScore}/100 (Skor optimasi untuk mesin pencari)
-        </div>`;
-
-        // Tampilkan Aksesibilitas jika tersedia
-        const accessibilityScore = data.lighthouseResult.categories.accessibility?.score * 100 || 'N/A';
-        resultsDiv.innerHTML += `<div class="result-item">
-            <strong>Aksesibilitas Score:</strong> ${accessibilityScore}/100 (Skor aksesibilitas halaman)
-        </div>`;
-
-        // Tampilkan Best Practices jika tersedia
-        const bestPracticesScore = data.lighthouseResult.categories['best-practices']?.score * 100 || 'N/A';
-        resultsDiv.innerHTML += `<div class="result-item">
-            <strong>Best Practices Score:</strong> ${bestPracticesScore}/100 (Skor kepatuhan pada praktik terbaik web)
         </div>`;
 
     } else {

@@ -3,41 +3,29 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>PageSpeed Insights Viewer</title>
+    <title>PageSpeed Insight Checker</title>
     <style>
-        body {
-            font-family: Arial, sans-serif;
-            margin: 20px;
-            padding: 0;
-        }
-        input[type="text"], button {
-            padding: 10px;
-            margin: 5px;
-            font-size: 16px;
-        }
-        .results {
-            margin-top: 20px;
-        }
-        .result-item {
-            background-color: #f6f8fa;
-            padding: 15px;
-            border-radius: 5px;
-            margin-bottom: 10px;
-        }
-        .loading {
-            font-style: italic;
-            color: #007bff;
-        }
+        .loading { font-style: italic; }
+        .result-item { margin-bottom: 10px; }
     </style>
 </head>
 <body>
-    <h1>PageSpeed Insights Viewer</h1>
-    <p>Masukkan URL website untuk mendapatkan metrik performa:</p>
+    <h1>Periksa Kinerja Halaman Web</h1>
 
+    <!-- Input URL -->
+    <label for="urlInput">Masukkan URL:</label>
     <input type="text" id="urlInput" placeholder="https://example.com">
-    <button onclick="getPageSpeedData()">Cek Performa</button>
 
-    <div class="results" id="results"></div>
+    <!-- Tombol untuk mengganti mode desktop/mobile -->
+    <button id="modeBtn" onclick="toggleMode()">Switch to Mobile</button>
+
+    <!-- Tombol untuk mengganti sumber URL (URL input atau URL asal) -->
+    <button id="urlSourceBtn" onclick="toggleUrlSource()">Use Current URL</button>
+
+    <!-- Tombol untuk memeriksa PageSpeed -->
+    <button onclick="getPageSpeedData()">Periksa</button>
+
+    <div id="results"></div>
 
     <script src="script.js"></script>
 </body>
